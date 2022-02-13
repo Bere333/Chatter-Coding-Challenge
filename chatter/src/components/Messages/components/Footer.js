@@ -7,7 +7,7 @@ export default function Footer({ sendMessage, onChangeMessage, message }) {
     if (keyCode !== RETURN_KEY_CODE ) { return; }
 
     sendMessage();
-  }
+  };
 
   return (
     <div className="messages__footer">
