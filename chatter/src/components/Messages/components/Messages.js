@@ -12,7 +12,6 @@ import '../styles/_messages.scss';
 
 const connect_socket = io(
   config.BOT_SERVER_ENDPOINT,
-  //"http://localhost:3001/",
   { transports: ['websocket', 'polling', 'flashsocket'] }
 );
 
@@ -21,7 +20,6 @@ function Messages() {
   const [playReceive] = useSound(config.RECEIVE_AUDIO_URL);
   const [message, setMessage] = useState('');
   const [storage, setStorage] = useState([]);
-  const [botStorage, setBotStorage] = useState([]);
   const [isTyping, setTyping] = useState(false);
   const [response, setResponse] = useState("");
   const [user] = useState("me");
@@ -44,7 +42,6 @@ function Messages() {
     () => {
       setLatestMessage(user, message);
       setStorage((oldmessage) =>[...oldmessage, message]);
-      //console.log(messages);
       playSend();
       socket.emit("user-message", message);
       socket.on("bot-typing", ()=>{
