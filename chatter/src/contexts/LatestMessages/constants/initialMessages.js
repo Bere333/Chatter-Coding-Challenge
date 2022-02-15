@@ -1,7 +1,7 @@
 import INITIAL_BOTTY_MESSAGE from '../../../common/constants/initialBottyMessage';
 
 export default  {
-  bot: INITIAL_BOTTY_MESSAGE,
+  bot: INITIAL_BOTTY_MESSAGE, 
   brandon: 'Hello there!',
   clayton: 'Yes of course. Thanks',
   bernice: 'This is a question regarding the fun time we had.',

@@ -13,7 +13,7 @@ export default function Typing() {
     return () => {
       clearTimeout(timeout);
     }
-  }, [numberOfDots]);
+  }, [numberOfDots]); 
 
   return (
     <p

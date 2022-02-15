@@ -7,10 +7,12 @@ import TypingMessage from './TypingMessage';
 import Header from './Header';
 import Footer from './Footer';
 import Message from './Message';
+import initialBottyMessage from '../../../common/constants/initialBottyMessage';
 import '../styles/_messages.scss';
 
-const socket = io(
+const connect_socket = io(
   config.BOT_SERVER_ENDPOINT,
+  //"http://localhost:3001/",
   { transports: ['websocket', 'polling', 'flashsocket'] }
 );
 
@@ -19,13 +21,19 @@ function Messages() {
   const [playReceive] = useSound(config.RECEIVE_AUDIO_URL);
   const [message, setMessage] = useState('');
   const [storage, setStorage] = useState([]);
+  const [botStorage, setBotStorage] = useState([]);
+  const [isTyping, setTyping] = useState(false);
   const [response, setResponse] = useState("");
-
-  const { setLatestMessage } = useContext(LatestMessagesContext);
-
+  const [user] = useState("me");
+  const [socket] = useState(connect_socket);
+  
+  const { messages, setLatestMessage } = useContext(LatestMessagesContext);
+  
   useEffect(() => {
-    // algo
-  });
+    socket.on("connect", () => {
+      console.log('socket connect');
+    });
+  },[socket]);
 
   const onChangeMessage = (e) => {
     e.preventDefault();
@@ -34,17 +42,23 @@ function Messages() {
 
   const sendMessage = useCallback(
     () => {
+      setLatestMessage(user, message);
       setStorage((oldmessage) =>[...oldmessage, message]);
-      console.log(storage);
-      // socket.on("user-message", () => {
-      //   socket.send(message);
-      // });
-      // socket.on("user-message", data => {
-      //   setResponse(data);
-      // });
-      //console.log(response);
+      //console.log(messages);
+      playSend();
+      socket.emit("user-message", message);
+      socket.on("bot-typing", ()=>{
+        setTyping(true);
+      });
+      socket.on("bot-message", (res) => {
+        setTyping(false);
+        playReceive();
+        console.log(res);
+        setResponse(res);
+        setLatestMessage("bot", res);
+      });
     },
-    [message, storage],
+    [message],
   );
 
   
@@ -53,24 +67,92 @@ function Messages() {
     <div className="messages">
       <Header />
       <div className="messages__list" id="message-list">
+        {
+          <Message
+            nextMessage={
+              {
+                "message": "How are you?",
+                "user":"bot"
+              }
+            }
+            message={
+              {
+                "message": initialBottyMessage,
+                "id": 0,
+                "user":"bot"
+              }
+            }
+            botTyping={false}
+          />
+        }
         { 
-          storage && storage.map( (mess, index) => {
+          storage && storage.map( (text, index) => {
+            if (text === message.me) {
               return(
-                <Message
-                  nextMessage={":)"}
-                  message={
-                    {
-                      "message":mess,
-                      "id": index,
-                      "user":"me"
-                    }
-                  }
-                  botTyping={true}
-                />
+                
+                      <Message
+                        nextMessage={
+                          {
+                            "message": messages.me,
+                            "user":user
+                          }
+                        }
+                        message={
+                          {
+                            "message": messages.bot, // context
+                            "id": 2,
+                            "user":"bot"
+                          }
+                        }
+                        botTyping={isTyping}
+                      />
+                  
               )
+            }else{
+                return(
+                  <Message
+                    nextMessage={
+                      {
+                        "message": messages.bot,
+                        "user":"bot"
+                      }
+                    }
+                    message={
+                      {
+                        "message": text,
+                        "id": index,
+                        "user":user
+                      }
+                    }
+                    botTyping={isTyping}
+                  /> 
+                )
+              }
             }
           )
         }
+        {
+          (isTyping && <TypingMessage/>) || 
+          (response && 
+            <Message
+              nextMessage={
+                {
+                  "message": messages.me,
+                  "user":user
+                }
+              }
+              message={
+                {
+                  "message": messages.bot, // context
+                  "id": 2,
+                  "user":"bot"
+                }
+              }
+              botTyping={isTyping}
+            />)
+
+        }
+
       </div>
       <Footer message={message} sendMessage={sendMessage} onChangeMessage={(e)=>{onChangeMessage(e)}} />
     </div>
@@ -78,3 +160,4 @@ function Messages() {
 }
 
 export default Messages;
+
